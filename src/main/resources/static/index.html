@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Selfie Comparison</title>
+    <style>
+      .preview {
+          width: 45%;
+          display: inline-block;
+          vertical-align: top;
+          padding: 10px;
+      }
+    </style>
+</head>
+<body>
+    <h1>Selfie Comparison</h1>
+    
+    <form id="uploadForm">
+        <input type="file" id="foto1" accept="image/*" required>
+        <input type="file" id="foto2" accept="image/*" required>
+        
+        <br><br>
+        
+        <div id="previewContainer">
+          <h3>Preview:</h3>
+          <div id="foto1Preview" class="preview"></div>
+          <div id="foto2Preview" class="preview"></div>
+        </div>
+        
+        <br><br>
+        
+        <button type="submit" id="enviarButton">Submit</button>
+    </form>
+    
+    <p id="similaridadeLabel" style="display: none;">Similarity: <span id="similaridadeValor"></span></p>
+    
+    <script>
+        const uploadForm = document.getElementById('uploadForm');
+        const foto1Input = document.getElementById('foto1');
+        const foto2Input = document.getElementById('foto2');
+        const foto1Preview = document.getElementById('foto1Preview');
+        const foto2Preview = document.getElementById('foto2Preview');
+        const enviarButton = document.getElementById('enviarButton');
+        const similaridadeLabel = document.getElementById('similaridadeLabel');
+        const similaridadeValor = document.getElementById('similaridadeValor');
+        
+        uploadForm.addEventListener('submit', async function(event) {
+            event.preventDefault();
+            
+            const foto1File = foto1Input.files[0];
+            const foto2File = foto2Input.files[0];
+            
+            if (foto1File && foto2File) {
+                const totalSize = foto1File.size + foto2File.size;
+                if (totalSize <= 6 * 1024 * 1024) { // 6MB
+                    const foto1Base64 = await readFileAsBase64(foto1File);
+                    const foto2Base64 = await readFileAsBase64(foto2File);
+                    
+                    enviarButton.innerHTML = 'Sending...';
+                    enviarButton.disabled = true;
+                    
+                    const response = await makeApiCall(foto1Base64, foto2Base64);
+                    
+                    enviarButton.innerHTML = 'Submit';
+                    enviarButton.disabled = false;
+
+                    if (response.similarity != -1) {
+                      similaridadeValor.innerText = response.similarity;
+                    } else {
+                      similaridadeValor.innerText = response.errorTitle + ' -> ' + response.errorMsg;
+                    }
+                    http://localhost:8080
+                    similaridadeLabel.style.display = 'block';
+                } else {
+                    alert('The total size of the photos exceeds 6MB.');
+                }
+            } else {
+                alert('Select two valid photos.');
+            }
+        });
+        
+        function readFileAsBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    resolve(e.target.result);
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+
+        
+
+        async function makeApiCall(photo1, photo2) {
+            var baseUrl = '${URL_TO_SUBSTITUTE}'
+
+            if (baseUrl.includes("URL_TO_SUBSTITUTE")) {
+              baseUrl = 'http://localhost:8080';
+            }
+
+            console.log(baseUrl);
+
+            const url = baseUrl + '/facecomparison/compare';
+
+
+            const requestData = {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    photo1: photo1,
+                    photo2: photo2
+                })
+            };
+            
+            const response = await fetch(url, requestData);
+            const json = await response.json();
+            const data = {
+              similarity: -1  
+            };
+
+            if (response.status === 200) {
+              data.similarity = json.similarity;
+            } else {
+              data.errorTitle = json.error;
+              data.errorMsg = json.message;
+            }
+
+            return data;
+        }
+        
+        foto1Input.addEventListener('change', function() {
+            const file = foto1Input.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const img = document.createElement('img');
+                    img.src = e.target.result;
+                    img.width = 200;
+                    foto1Preview.innerHTML = '';
+                    foto1Preview.appendChild(img);
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+        
+        foto2Input.addEventListener('change', function() {
+            const file = foto2Input.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const img = document.createElement('img');
+                    img.src = e.target.result;
+                    img.width = 200;
+                    foto2Preview.innerHTML = '';
+                    foto2Preview.appendChild(img);
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+    </script>
+</body>
+</html>
