@@ -26,7 +26,7 @@ custom:
   product: youtube
 
 package:
-  artifact: app/target/facecomparison-0.0.1-SNAPSHOT.jar
+  artifact: target/facecomparison-0.0.1-SNAPSHOT.jar
 
 functions:
   app:
