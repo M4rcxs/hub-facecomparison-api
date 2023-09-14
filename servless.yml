@@ -15,7 +15,7 @@ provider:
 
   environment:
     stage: ${self:custom.stage}
-    region: ${aws:region}
+    region: ${aws:region} 
     service: ${self:service}
 
 plugins:
@@ -26,14 +26,14 @@ custom:
   product: youtube
 
 package:
-  artifact: target/facecomparison-0.0.1-SNAPSHOT.jar
+  artifact: app/target/facecomparison-0.0.1-SNAPSHOT.jar
 
 functions:
   app:
     handler: com.br.hub.facecomparison.config.StreamLambdaHandler
     name: ${self:service}-${self:custom.stage}
     events:
-      - http:
-          cors: true
-          path: '/facecomparison/{proxy+}'
-          method: any
+    - http:
+        cors: true
+        path: '/facecomparison/{proxy+}'
+        method: any
